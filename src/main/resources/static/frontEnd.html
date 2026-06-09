@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Email Test Form</title>
+</head>
+<body>
+<h2>Send Email</h2>
+
+<form id="emailForm">
+    <label>From:</label><br>
+    <input type="email" id="from" value="radheyshyam.spartan@gmail.com" required><br><br>
+
+    <label>To:</label><br>
+    <input type="email" id="to" required><br><br>
+
+    <label>Subject:</label><br>
+    <input type="text" id="subject" required><br><br>
+
+    <label>Body:</label><br>
+    <textarea id="body" rows="5" cols="40" required></textarea><br><br>
+
+    <button type="submit">Send Email</button>
+</form>
+
+<p id="result"></p>
+
+<script>
+    document.getElementById('emailForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const from = document.getElementById('from').value;
+        const to = document.getElementById('to').value;
+        const subject = document.getElementById('subject').value;
+        const body = document.getElementById('body').value;
+
+        const params = new URLSearchParams();
+        params.append('from', from);
+        params.append('to', to);
+        params.append('subject', subject);
+        params.append('body', body);
+
+        fetch('/email/send', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: params.toString()
+        })
+            .then(response => response.text())
+            .then(text => {
+                document.getElementById('result').innerText = text;
+            })
+            .catch(err => {
+                document.getElementById('result').innerText = 'Error: ' + err;
+            });
+    });
+</script>
+</body>
+</html>
