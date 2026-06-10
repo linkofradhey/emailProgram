@@ -1,60 +1,107 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Email Test Form</title>
+    <title>Send Email</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .email-row { margin: 5px 0; }
+        .email-row input { padding: 8px; width: 300px; }
+        .remove-btn { background: red; color: white; border: none; padding: 8px 12px; cursor: pointer; }
+        .add-btn { background: green; color: white; border: none; padding: 8px 15px; cursor: pointer; margin: 10px 0; }
+        .send-btn { background: blue; color: white; border: none; padding: 10px 20px; cursor: pointer; }
+        .field { margin: 10px 0; }
+        .field input, .field textarea { padding: 8px; width: 300px; }
+        label { font-weight: bold; display: block; margin-bottom: 4px; }
+    </style>
 </head>
 <body>
-<h2>Send Email</h2>
 
-<form id="emailForm">
-    <label>From:</label><br>
-    <input type="email" id="from" required><br><br>
+<h2>Send Email to Multiple Recipients</h2>
 
-    <label>To:</label><br>
-    <input type="email" id="to" required><br><br>
+<!-- From Email -->
+<div class="field">
+    <label>From Email:</label>
+    <input type="email" id="fromEmail" placeholder="Enter your email address" />
+</div>
 
-    <label>Subject:</label><br>
-    <input type="text" id="subject" required><br><br>
+<!-- Dynamic To Email Inputs -->
+<label>To Email(s):</label>
+<div id="emailList">
+    <div class="email-row">
+        <input type="email" placeholder="Enter recipient email" />
+        <button class="remove-btn" onclick="removeEmail(this)">remove</button>
+    </div>
+</div>
+<button class="add-btn" onclick="addEmail()">+ Add Email</button>
 
-    <label>Body:</label><br>
-    <textarea id="body" rows="5" cols="40" required></textarea><br><br>
+<!-- Subject -->
+<div class="field">
+    <label>Subject:</label>
+    <input type="text" id="subject" placeholder="Enter subject" />
+</div>
 
-    <button type="submit">Send Email</button>
-</form>
+<!-- Body -->
+<div class="field">
+    <label>Body:</label>
+    <textarea id="body" placeholder="Enter email body (HTML supported)" rows="5"></textarea>
+</div>
 
-<p id="result"></p>
+<!-- Send Button -->
+<button class="send-btn" onclick="sendEmail()"> Send Email</button>
 
 <script>
-    document.getElementById('emailForm').addEventListener('submit', function (e) {
-        e.preventDefault();
+    function addEmail() {
+        const div = document.createElement('div');
+        div.className = 'email-row';
+        div.innerHTML = `
+            <input type="email" placeholder="Enter recipient email" />
+            <button class="remove-btn" onclick="removeEmail(this)">remove</button>
+        `;
+        document.getElementById('emailList').appendChild(div);
+    }
 
-        const from = document.getElementById('from').value;
-        const to = document.getElementById('to').value;
-        const subject = document.getElementById('subject').value;
-        const body = document.getElementById('body').value;
+    function removeEmail(btn) {
+        const rows = document.querySelectorAll('.email-row');
+        if (rows.length > 1) {
+            btn.parentElement.remove();
+        } else {
+            alert("At least one email is required!");
+        }
+    }
 
-        const params = new URLSearchParams();
-        params.append('from', from);
-        params.append('to', to);
-        params.append('subject', subject);
-        params.append('body', body);
+    function sendEmail() {
+        const from = document.getElementById('fromEmail').value.trim();
+        const inputs = document.querySelectorAll('#emailList input');
+        const emails = [];
 
-        fetch('/email/send', {
+        inputs.forEach(input => {
+            if (input.value.trim() !== '') {
+                emails.push(input.value.trim());
+            }
+        });
+
+        if (!from) { alert("Please enter From email!"); return; }
+        if (emails.length === 0) { alert("Please enter at least one recipient!"); return; }
+
+        const data = {
+            from: from,                                // ✅ From email added
+            to: emails,
+            subject: document.getElementById('subject').value,
+            body: document.getElementById('body').value
+        };
+
+        console.log("Sending:", data);
+
+        fetch('http://localhost:8000/email/send', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: params.toString()
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
         })
-            .then(response => response.text())
-            .then(text => {
-                document.getElementById('result').innerText = text;
-            })
-            .catch(err => {
-                document.getElementById('result').innerText = 'Error: ' + err;
-            });
-    });
+        .then(res => res.text())
+        .then(result => alert("✅ " + result))
+        .catch(err => alert("❌ Error: " + err));
+    }
 </script>
+
 </body>
 </html>
