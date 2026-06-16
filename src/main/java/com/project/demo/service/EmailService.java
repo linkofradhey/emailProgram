@@ -25,7 +25,7 @@ public class EmailService {
 		helper.setSubject(subject);
 		helper.setText(body,true);
 		mailSender.send(message);
-        System.out.println("✅ Email sent to " + to.length + " recipients!");
+        System.out.println(" Email sent to " + to.length + " recipients!");
 
 		}catch (MessagingException e) {
 			e.printStackTrace();
